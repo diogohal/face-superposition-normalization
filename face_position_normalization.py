@@ -69,19 +69,5 @@ for count, image in enumerate(os.listdir(directory_path)):
     if(default_eyes_position == ((0,0),(0,0))):
         default_eyes_position = (eye1, eye2)
         
-    # EVERYTHING IS BROKEN BELOW
-    else:
-        # Resize image
-        coef = (eye2[0] - eye1[0]) / (default_eyes_position[1][0] - default_eyes_position[0][0])
-        img = cv.resize(img, (int(img_size[0]*coef), int(img_size[1]*coef)), cv.INTER_AREA)
-        img = img[:img_size[1], :img_size[1]]
-        
-    # Translate image to default eyes position
-    img = translate(img, default_eyes_position[0][0] - eye1[0], default_eyes_position[0][1] - eye1[1])
-    cv.line(img, (eye1[0], 0), (eye1[0], img.shape[0]), (0,0,255), 1)
-    cv.line(img, (eye2[0], 0), (eye2[0], img.shape[0]), (0,0,255), 1)
-        
-    cv.imwrite(f'Photos_out/img_{count}.jpg', img)
-    #cv.imshow(f'Rotate{count}', img)
 
 cv.waitKey(0)
