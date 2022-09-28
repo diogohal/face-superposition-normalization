@@ -1,9 +1,9 @@
-from operator import mod
 import cv2 as cv
 import math
 import os
 import numpy as np
 
+# Transformation functions
 def translate(img, x, y):
     transMat = np.float32([[1,0,x],[0,1,y]])
     dimensions = (img.shape[1], img.shape[0])
@@ -17,14 +17,19 @@ def rotate(img, angle, rotPoint=None):
         rotPoint = (width//2, height//2)
     
     rotMat = cv.getRotationMatrix2D(rotPoint, angle, 1.0)
-    
     return cv.warpAffine(img, rotMat, dimensions)
 
+# Main program
+loop_delimiter = 375
+default_eyes_height = 0
+default_eyes_widht = 0
 
-default_eyes_position = ((0,0), (0,0))
 # Open folder and list files of directory
 directory_path = 'Photos/'
-for count, image in enumerate(os.listdir(directory_path)):
+for count, image in enumerate(sorted(os.listdir(directory_path))):
+    if(count >= loop_delimiter):
+        break
+    
     img_file = open(os.path.join(directory_path, image))
 
     # Reset eyes position
@@ -42,14 +47,26 @@ for count, image in enumerate(os.listdir(directory_path)):
     for i, (ex, ey, ew, eh) in enumerate(eyes):
         cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))
         cv.circle(img, (ex + ew//2, ey+eh//2), 1, (0,255,0), cv.FILLED)
-        if i == 0:
+        if(i == 0):
             eye1 = (ex + ew//2, ey+eh//2)
-        else:
+        # Case eye2 is the nose
+        
+        
+        # Case eye2 is the right one
+        elif((ex - eye1[0]) > 0):
             eye2 = (ex + ew//2, ey+eh//2)
+            break
+        # Case eye2 is the left one -> invert
+        else:
+            eye2 = eye1
+            eye1 = (ex + ew//2, ey+eh//2)
+            break
     
     # If an eye isn't detected
     if(eye1 == (0,0)) or (eye2 == (0,0)):
-        continue 
+        print(f'Photo {count} had a problem in eye detection!')
+        cv.imshow(f'Photo{count}', img)
+        continue    
     
     # Math to find the angle between eye's positions
     eye_hip = math.sqrt(math.pow((eye1[0] - eye2[0]), 2) + math.pow((eye1[1] - eye2[1]), 2))
@@ -58,16 +75,33 @@ for count, image in enumerate(os.listdir(directory_path)):
     img = rotate(img, degree, (int(eye2[0]), int(eye2[1])))
 
     # Set new eye1 position
-    eye1 = (int(eye2[0] - eye_hip), eye2[1])
+    if(eye1[0] < eye2[0]):
+        eye1 = (int(eye2[0] - eye_hip), eye2[1])
+    else:
+        eye2 = (int(eye1[0] - eye_hip), eye1[1])
     
     # Draw a line to see if rotate was sucessful
-    cv.line(img, (0, eye2[1]), (img.shape[1], eye2[1]), (0,255,0))
-    cv.line(img, (0, eye2[1]), (img.shape[1], eye2[1]), (0,255,0))
-    # cv.imshow('Image', img)   
+    cv.line(img, (0, eye1[1]), (img.shape[1], eye1[1]), (0,255,0))
+    cv.line(img, (eye2[0], 0), (eye2[0], img.shape[0]), (0,255,0))
+    cv.line(img, (eye1[0], 0), (eye1[0], img.shape[0]), (0,255,0))
     
-    # Set default eyes position
-    if(default_eyes_position == ((0,0),(0,0))):
-        default_eyes_position = (eye1, eye2)
-        
+    # Set default eyes height
+    if(default_eyes_height == 0):
+        default_eyes_height = eye1[1]
+        default_eyes_widht = eye1[0]
+        default_eyes_distance = eye2[0] - eye1[0] 
+    
+    # Translate image to the default eyes height and width positions
+    if(count > 0):
+        img = translate(img, 0, default_eyes_height - eye2[1])
+        img = translate(img, default_eyes_widht - eye1[0], 0)
+    
+    # Resize image to the default image eyes distant ratio
+    ratio = default_eyes_distance / (eye2[0] - eye1[0])
+    cv.resize(img, (int(img.shape[1] * ratio), int(img.shape[0]*ratio)))
+    
+    # cv.imshow(f'Image{count}', img)
+    cv.imwrite(f'out/photo{count}.jpg', img)       
+    print(f'Photo {count} successfully normalizated!')
 
 cv.waitKey(0)
