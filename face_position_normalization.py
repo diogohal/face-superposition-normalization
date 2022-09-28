@@ -20,14 +20,17 @@ def rotate(img, angle, rotPoint=None):
     return cv.warpAffine(img, rotMat, dimensions)
 
 # Main program
-loop_delimiter = 375
+loop_enable = 0
+loop_delimiter = 37
 default_eyes_height = 0
 default_eyes_widht = 0
 
 # Open folder and list files of directory
 directory_path = 'Photos/'
 for count, image in enumerate(sorted(os.listdir(directory_path))):
-    if(count >= loop_delimiter):
+    if(loop_enable == 0) and (loop_delimiter != count):
+        continue
+    if(count > loop_delimiter):
         break
     
     img_file = open(os.path.join(directory_path, image))
@@ -48,24 +51,36 @@ for count, image in enumerate(sorted(os.listdir(directory_path))):
         cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))
         cv.circle(img, (ex + ew//2, ey+eh//2), 1, (0,255,0), cv.FILLED)
         if(i == 0):
+            print('teste0')
             eye1 = (ex + ew//2, ey+eh//2)
+            continue
+        # Case eye1 is the nose
+        if(eye1[1]-ey+eh > 50):
+            eye1 = (ex + ew//2, ey+eh//2)
+            print('teste1')
+            continue
         # Case eye2 is the nose
-        
-        
+        if(eye1[1]-ey+eh < 50):
+            print('teste2')
+            continue
         # Case eye2 is the right one
-        elif((ex - eye1[0]) > 0):
+        if((ex - eye1[0]) > 0):
+            print('teste3')
             eye2 = (ex + ew//2, ey+eh//2)
             break
         # Case eye2 is the left one -> invert
         else:
+            print('teste4')
             eye2 = eye1
             eye1 = (ex + ew//2, ey+eh//2)
             break
     
     # If an eye isn't detected
+    print(eye1)
+    print(eye2)
     if(eye1 == (0,0)) or (eye2 == (0,0)):
         print(f'Photo {count} had a problem in eye detection!')
-        cv.imshow(f'Photo{count}', img)
+        cv.imwrite(f'errors/photo{count}_error.jpg', img)
         continue    
     
     # Math to find the angle between eye's positions
