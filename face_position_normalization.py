@@ -2,8 +2,10 @@ import cv2 as cv
 import math
 import os
 import numpy as np
+import sys
+import getopt
 
-# Transformation functions
+# ----------- Transformation functions ----------- 
 def translate(img, x, y):
     transMat = np.float32([[1,0,x],[0,1,y]])
     dimensions = (img.shape[1], img.shape[0])
@@ -19,21 +21,50 @@ def rotate(img, angle, rotPoint=None):
     rotMat = cv.getRotationMatrix2D(rotPoint, angle, 1.0)
     return cv.warpAffine(img, rotMat, dimensions)
 
-# Main program
-loop_enable = 0
-loop_delimiter = 37
+def getScriptArguments(argv):
+    global input_folder
+    global output_folder
+    arg_help = "{0} -i <input_folder> -o <output_folder>".format(argv[0])
+    
+    try:
+        opts, args = getopt.getopt(argv[1:], "h:i:o:", ["help", "input=", "output="])
+    except:
+        print(arg_help)
+        sys.exit(2)
+    
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(arg_help)  # print the help message
+            sys.exit(2)
+        elif opt in ("-i", "--input"):
+            input_folder = arg
+        elif opt in ("-o", "--output"):
+            output_folder = arg
+
+    print('input:', input_folder)
+    print('output:', output_folder)
+
+# ----------- Main program ----------- 
+# Get script arguments
+input_folder = ''
+output_folder = ''
+if __name__ == "__main__":
+    getScriptArguments(sys.argv)
+
+# Program variables
+loop_enable = 1
+loop_delimiter = 176
 default_eyes_height = 0
 default_eyes_widht = 0
 
 # Open folder and list files of directory
-directory_path = 'Photos/'
-for count, image in enumerate(sorted(os.listdir(directory_path))):
+for count, image in enumerate(sorted(os.listdir(input_folder)), 1):
     if(loop_enable == 0) and (loop_delimiter != count):
         continue
     if(count > loop_delimiter):
         break
     
-    img_file = open(os.path.join(directory_path, image))
+    img_file = open(os.path.join(input_folder, image))
 
     # Reset eyes position
     eye2 = (0,0)
@@ -51,33 +82,19 @@ for count, image in enumerate(sorted(os.listdir(directory_path))):
         cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))
         cv.circle(img, (ex + ew//2, ey+eh//2), 1, (0,255,0), cv.FILLED)
         if(i == 0):
-            print('teste0')
             eye1 = (ex + ew//2, ey+eh//2)
-            continue
-        # Case eye1 is the nose
-        if(eye1[1]-ey+eh > 50):
-            eye1 = (ex + ew//2, ey+eh//2)
-            print('teste1')
-            continue
-        # Case eye2 is the nose
-        if(eye1[1]-ey+eh < 50):
-            print('teste2')
             continue
         # Case eye2 is the right one
         if((ex - eye1[0]) > 0):
-            print('teste3')
             eye2 = (ex + ew//2, ey+eh//2)
             break
         # Case eye2 is the left one -> invert
         else:
-            print('teste4')
             eye2 = eye1
             eye1 = (ex + ew//2, ey+eh//2)
             break
     
     # If an eye isn't detected
-    print(eye1)
-    print(eye2)
     if(eye1 == (0,0)) or (eye2 == (0,0)):
         print(f'Photo {count} had a problem in eye detection!')
         cv.imwrite(f'errors/photo{count}_error.jpg', img)
@@ -116,7 +133,7 @@ for count, image in enumerate(sorted(os.listdir(directory_path))):
     cv.resize(img, (int(img.shape[1] * ratio), int(img.shape[0]*ratio)))
     
     # cv.imshow(f'Image{count}', img)
-    cv.imwrite(f'out/photo{count}.jpg', img)       
+    cv.imwrite(f'{output_folder}/photo{count}.jpg', img)       
     print(f'Photo {count} successfully normalizated!')
 
 cv.waitKey(0)
