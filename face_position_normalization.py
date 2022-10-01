@@ -53,51 +53,50 @@ if __name__ == "__main__":
 
 # Program variables
 loop_enable = 1
-loop_delimiter = 176
+loop_delimiter = 147
 default_eyes_height = 0
 default_eyes_widht = 0
 
 # Open folder and list files of directory
-for count, image in enumerate(sorted(os.listdir(input_folder)), 1):
+for count, img_name in enumerate(sorted(os.listdir(input_folder)), 1):
     if(loop_enable == 0) and (loop_delimiter != count):
         continue
     if(count > loop_delimiter):
         break
     
-    img_file = open(os.path.join(input_folder, image))
+    img_file = open(os.path.join(input_folder, img_name))
 
     # Reset eyes position
     eye2 = (0,0)
     eye1 = (0,0)
     
     # Load image and resize for debugging
-    img = cv.imread(img_file.name)
-    img = cv.resize(img, (img.shape[1]//5, img.shape[0]//5))
-    img_size = (img.shape[1], img.shape[0])
+    img_original = cv.imread(img_file.name)
+    
+    # img_original = cv.resize(img, (img.shape[1]//5, img.shape[0]//5))
+    img_size = (img_original.shape[1], img_original.shape[0])
+    img_gray = cv.cvtColor(img_original, cv.COLOR_BGR2GRAY)
+    img = img_original
 
     # Eyes detection using haarcascades classifier
     eye_cascade = cv.CascadeClassifier(os.path.join(cv.data.haarcascades, 'haarcascade_eye.xml'))
-    eyes = eye_cascade.detectMultiScale(img, 1.3, 5)
+    eyes = eye_cascade.detectMultiScale(img_gray, scaleFactor=1.3, minNeighbors=5, minSize=[30, 30], maxSize=[80, 80])
     for i, (ex, ey, ew, eh) in enumerate(eyes):
         cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))
         cv.circle(img, (ex + ew//2, ey+eh//2), 1, (0,255,0), cv.FILLED)
         if(i == 0):
             eye1 = (ex + ew//2, ey+eh//2)
-            continue
-        # Case eye2 is the right one
-        if((ex - eye1[0]) > 0):
+        else:
             eye2 = (ex + ew//2, ey+eh//2)
             break
-        # Case eye2 is the left one -> invert
-        else:
-            eye2 = eye1
-            eye1 = (ex + ew//2, ey+eh//2)
-            break
-    
+        
+    # Case eye2 is the left one -> invert
+    if(eye1[0] > eye2[0]):
+        eye1, eye2 = eye2, eye1
+        
     # If an eye isn't detected
     if(eye1 == (0,0)) or (eye2 == (0,0)):
-        print(f'Photo {count} had a problem in eye detection!')
-        cv.imwrite(f'errors/photo{count}_error.jpg', img)
+        print(f'ERROR! {img_name} had a problem in eye detection!')
         continue    
     
     # Math to find the angle between eye's positions
@@ -128,12 +127,23 @@ for count, image in enumerate(sorted(os.listdir(input_folder)), 1):
         img = translate(img, 0, default_eyes_height - eye2[1])
         img = translate(img, default_eyes_widht - eye1[0], 0)
     
-    # Resize image to the default image eyes distant ratio
-    ratio = default_eyes_distance / (eye2[0] - eye1[0])
-    cv.resize(img, (int(img.shape[1] * ratio), int(img.shape[0]*ratio)))
-    
+    # Resize image to the default image eyes distant ratio - CORRIGIR!!!!
+    if(count > 1):
+        ratio = default_eyes_distance / (eye2[0] - eye1[0])
+        print(ratio)
+        if(ratio <= 0):
+            print(f'ERROR! {img_name} had a problem in ratio calculus!')
+            print(f'Ratio = {default_eyes_distance} / ({eye2[0]} - {eye1[0]})')
+            continue
+        x_resized = int(img.shape[1] * ratio)
+        y_resized = int(img.shape[0] * ratio)
+        img = cv.resize(img, (x_resized, y_resized))
+        img = cv.copyMakeBorder(img, int((img_original.shape[0] - y_resized)/2), int((img_original.shape[0] - y_resized)/2),
+                                int((img_original.shape[1] - x_resized)/2), int((img_original.shape[1] - x_resized)/2),
+                                cv.BORDER_CONSTANT)
+        
     # cv.imshow(f'Image{count}', img)
     cv.imwrite(f'{output_folder}/photo{count}.jpg', img)       
-    print(f'Photo {count} successfully normalizated!')
+    print(f'{img_name} successfully normalizated!')
 
 cv.waitKey(0)
