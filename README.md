@@ -1,4 +1,4 @@
-# Face sobreposition normalization
+# Face superposition normalization
 
 ## Description
 
