@@ -2,8 +2,7 @@
 
 ## Description
 
-The main goal of this project is to create an application to reposition a set of photos in a default face position,
-creating a sobreposition of faces. For that, it was used Python language with OpenCV for image transformation.
+The main goal of this project is to create an application to reposition a set of photos in a default face position, creating a sobreposition of faces. For that, it was used Python language with OpenCV for image transformation and Haar Cascade classifier for eyes detection.
 
 ## How to Use
 
