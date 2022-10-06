@@ -29,12 +29,14 @@ def getScriptArguments(argv):
     # Set global variables
     global input_folder
     global output_folder
+    global default_image
     global size_ratio
+    global quantity
     arg_help = "{0} -i <input_folder> -o <output_folder>".format(argv[0])
     
     # Get script arguments
     try:
-        opts, args = getopt.getopt(argv[1:], 'h:i:o:s:', ['help', 'input=', 'output=', 'size-ratio='])
+        opts, args = getopt.getopt(argv[1:], 'h:i:o:s:q:d:', ['help', 'input=', 'output=', 'size-ratio=', 'quantity=', 'default-image='])
     except:
         print(arg_help)
         sys.exit(2)
@@ -54,8 +56,15 @@ def getScriptArguments(argv):
             if(os.path.exists(output_folder) == False):
                 print(f'Directory {output_folder} doesnt exist!')
                 quit()
+        elif opt in ('-d', '--default-image'):
+            default_image = arg
+            if(os.path.exists(os.path.join(f'{input_folder}/',default_image)) == False):
+                print(f'File {default_image} doesnt exist!')
+                quit()
         elif opt in ('-s', '--size-ratio'):
             size_ratio = float(arg)
+        elif opt in ('-q', '--quantity'):
+            quantity = float(arg)
 
 # Resize image by the default dimensions, adding padding and cropping if it's necessary
 def resizeWithPadding(img, ratio, default_eye1, eye1, default_dimensions):
@@ -85,22 +94,28 @@ def resizeWithPadding(img, ratio, default_eye1, eye1, default_dimensions):
 # Get script arguments
 input_folder = ''
 output_folder = ''
+default_image = ''
 size_ratio = 1
+quantity = -1
 if __name__ == "__main__":
     getScriptArguments(sys.argv)
 
 # Program variables
-loop_enable = 1
-loop_delimiter = 375
 default_eye1 = (0,0)
 default_eye2 = (0,0)
 default_dimensions = (0,0)
+img_list = []
+
+# Insert the image names inside a list
+for img_name in sorted(os.listdir(input_folder)):
+    img_list.append(img_name)
+if(default_image != ''):
+    img_list.pop(img_list.index(default_image))
+    img_list.insert(0, default_image)
 
 # Open folder and list files of directory
-for count, img_name in enumerate(sorted(os.listdir(input_folder)), 1):
-    if(loop_enable == 0) and (loop_delimiter != count):
-        continue
-    if(count > loop_delimiter):
+for count, img_name in enumerate(img_list, 1):
+    if(count > quantity) and (quantity != -1):
         break
     
     img_file = open(os.path.join(input_folder, img_name))
@@ -164,7 +179,7 @@ for count, img_name in enumerate(sorted(os.listdir(input_folder)), 1):
     cv.line(img, (default_eye1[0], 0), (default_eye1[0], img.shape[0]), (0,255,0))
     cv.line(img, (default_eye2[0], 0), (default_eye2[0], img.shape[0]), (0,255,0))
         
-    # cv.imshow(f'Image{count}', img)
+    # Save the output image
     cv.imwrite(f'{output_folder}/{img_name}_out.jpg', img)       
     print(f'{img_name} successfully normalizated!')
 
