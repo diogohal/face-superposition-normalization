@@ -17,7 +17,7 @@ Arguments:
 
 `-o` or `--output-folder` is the path where all the images normalizated are going
 
-`-d` or `--default-image` is the image filename inside input folder which it will be used for set default face position. Default: first image to be normalizated
+`-d` or `--default-image` is the image filename inside input folder which it will be used to set default face position. Default: first image to be normalizated
 
 `-q` or `--quantity` is the quantity of images to be normalizated. Default: all images inside input folder
 
