@@ -21,7 +21,7 @@ Arguments:
 
 `-q` or `--quantity` is the quantity of images to be normalizated. Default: all images inside input folder
 
-`-s` or `--size-ratio` is a value used to resize the images by multiplying it's width and height Default: 1.0
+`-s` or `--size-ratio` is a value used to resize the images by multiplying it's width and height. Default: 1.0
 
 Basic command `python face-sobreposition-normalization -i <input_folder> -o <output_folder>`
 
