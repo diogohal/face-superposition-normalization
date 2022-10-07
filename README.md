@@ -27,4 +27,4 @@ Basic command `python face-sobreposition-normalization -i <input_folder> -o <out
 
 ## Possible problems
 
-The Haar Cascade classifier sometimes has problems in eyes recognition, such as incorrect detection or lack of recognition. Upside down images also can't be inverted and it's normalizated incorrectly.
+The Haar Cascade classifier sometimes has problems in eyes recognition, such as incorrect detection or lack of recognition. Upside down images also can't be inverted and are normalizated incorrectly.
