@@ -15,7 +15,7 @@ Arguments:
 
 `-i` or `--input-folder` is the path to the folder that contains all the images to be normalized
 
-`-o` or `--output-folder` is the path where all the images normalized are going
+`-o` or `--output-folder` is the path to the folder where all the images normalized are going
 
 `-d` or `--default-image` is the image filename inside input folder which it will be used to set default face position. Default: first image to be normalized
 
