@@ -11,7 +11,7 @@ the normalized images are going. The running process is described below.
 
 Arguments:
 
-`-h or `--help` print a basic guide in terminal
+`-h` or `--help` print a basic guide in terminal
 
 `-i` or `--input-folder` is the path to the folder that contains all the images to be normalized
 
