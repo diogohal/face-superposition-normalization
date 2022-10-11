@@ -11,7 +11,7 @@ the normalized images are going. The running process is described below.
 
 Arguments:
 
-`--help` print a basic guide in terminal
+`-h or `--help` print a basic guide in terminal
 
 `-i` or `--input-folder` is the path to the folder that contains all the images to be normalized
 
@@ -22,6 +22,8 @@ Arguments:
 `-q` or `--quantity` is the quantity of images to be normalized. Default: all images inside input folder
 
 `-s` or `--size-ratio` is a value used to resize the images by multiplying it's width and height. Default: 1.0
+
+`-l` or `--lines` draw horizontal and vertical lines with intersections where default eyes position are
 
 Basic command `python face-sobreposition-normalization.py -i <input_folder> -o <output_folder>`
 
