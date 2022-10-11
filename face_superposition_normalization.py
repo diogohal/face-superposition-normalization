@@ -32,11 +32,13 @@ def getScriptArguments(argv):
     global default_image
     global size_ratio
     global quantity
-    arg_help = "{0} -i <input_folder> -o <output_folder>".format(argv[0])
+    global lines
+    arg_help = f'Incorret command format! Try {argv[0]} -i <input_folder> -o <output_folder>\nUse arguments -h or --help to open a guide.'
     
     # Get script arguments
     try:
-        opts, args = getopt.getopt(argv[1:], 'h:i:o:s:q:d:', ['help', 'input=', 'output=', 'size-ratio=', 'quantity=', 'default-image='])
+        opts, args = getopt.getopt(argv[1:], 'hi:o:s:q:d:l', ['help', 'input=', 'output=', 
+        'size-ratio=', 'quantity=', 'default-image=, lines'])
     except:
         print(arg_help)
         sys.exit(2)
@@ -44,7 +46,8 @@ def getScriptArguments(argv):
     # Treat script arguments
     for opt, arg in opts:
         if opt in ('-h', '--help'):
-            print(arg_help)  # print the help message
+            f = open('./README.md', 'r')
+            print(f.read())
             quit()
         elif opt in ('-i', '--input-folder'):
             input_folder = arg
@@ -65,6 +68,8 @@ def getScriptArguments(argv):
             size_ratio = float(arg)
         elif opt in ('-q', '--quantity'):
             quantity = float(arg)
+        elif opt in ('-l', '--lines'):
+            lines = 1
 
 # Resize image by the default dimensions, adding padding and cropping if it's necessary
 def resizeWithPadding(img, ratio, default_eye1, eye1, default_dimensions):
@@ -97,6 +102,7 @@ output_folder = ''
 default_image = ''
 size_ratio = 1
 quantity = -1
+lines = 0
 if __name__ == "__main__":
     getScriptArguments(sys.argv)
 
@@ -136,7 +142,8 @@ for count, img_name in enumerate(img_list, 1):
     eye_cascade = cv.CascadeClassifier(os.path.join(cv.data.haarcascades, 'haarcascade_eye.xml'))
     eyes = eye_cascade.detectMultiScale(img_gray, scaleFactor=1.3, minNeighbors=5)
     for i, (ex, ey, ew, eh) in enumerate(eyes):
-        cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))   # Draw a rectangle around eyes
+        if lines == 1:
+            cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))   # Draw a rectangle around eyes
         if(i == 0):
             eye1 = (ex + ew//2, ey+eh//2)
         else:
@@ -174,10 +181,11 @@ for count, img_name in enumerate(img_list, 1):
             continue
         img = resizeWithPadding(img, ratio, default_eye1, eye1, default_dimensions)
     
-    # Draw a line to see if rotate was sucessful -> using default eyes
-    cv.line(img, (0, default_eye1[1]), (img.shape[1], default_eye1[1]), (0,255,0))
-    cv.line(img, (default_eye1[0], 0), (default_eye1[0], img.shape[0]), (0,255,0))
-    cv.line(img, (default_eye2[0], 0), (default_eye2[0], img.shape[0]), (0,255,0))
+    # Draw lines to see if rotate was sucessful -> using default eyes
+    if lines == 1:
+        cv.line(img, (0, default_eye1[1]), (img.shape[1], default_eye1[1]), (0,255,0))
+        cv.line(img, (default_eye1[0], 0), (default_eye1[0], img.shape[0]), (0,255,0))
+        cv.line(img, (default_eye2[0], 0), (default_eye2[0], img.shape[0]), (0,255,0))
         
     # Save the output image
     cv.imwrite(f'{output_folder}/{img_name}_out.jpg', img)       
