@@ -7,7 +7,7 @@ The main goal of this project is to create an application to reposition a set of
 ## How to Use
 
 After downloading the project, it's necessary to create an input folder, where all the images to be normalized are, and an output folder, where
-the normalized images are going. The running process is described below.
+the normalized images are going. For testing purpose, the photos inside test_samples folder can be used. The running process is described below.
 
 Arguments:
 
