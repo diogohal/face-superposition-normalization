@@ -119,7 +119,7 @@ if(default_image != ''):
     img_list.pop(img_list.index(default_image))
     img_list.insert(0, default_image)
 
-# Open folder and list files of directory
+# Make the transformation for each image inside the folder
 for count, img_name in enumerate(img_list, 1):
     if(count > quantity) and (quantity != -1):
         break
@@ -130,11 +130,13 @@ for count, img_name in enumerate(img_list, 1):
     eye1 = (0,0)
     eye2 = (0,0)
     
-    # Load image and convert it to gray for eyes detection
+    # Load image
     try:
         img = cv.imread(img_file.name)
     except:
         continue    # if the file is not a image
+
+    # Convert the image to gray scale for eyes detection
     img = cv.resize(img, (int(img.shape[1]*size_ratio), int(img.shape[0]*size_ratio)))    # Resize with size_ratio argument
     img_gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
@@ -144,6 +146,7 @@ for count, img_name in enumerate(img_list, 1):
     for i, (ex, ey, ew, eh) in enumerate(eyes):
         if lines == 1:
             cv.rectangle(img, (ex,ey), (ex + ew, ey + eh), (0,255,0))   # Draw a rectangle around eyes
+        # Get eyes center position
         if(i == 0):
             eye1 = (ex + ew//2, ey+eh//2)
         else:
@@ -159,14 +162,14 @@ for count, img_name in enumerate(img_list, 1):
     if(eye1[0] > eye2[0]):
         eye1, eye2 = eye2, eye1
         
-    # Math to rotate image by eye's positions
-    eye_hip = math.sqrt(math.pow((eye1[0] - eye2[0]), 2) + math.pow((eye1[1] - eye2[1]), 2))
+    # Math to rotate image by eye's positions. The idea is to keep the eye line horizontal.
+    eye_hip = math.sqrt(math.pow((eye1[0] - eye2[0]), 2) + math.pow((eye1[1] - eye2[1]), 2)) # Distance between the eyes
     eye_tan = (eye2[1] - eye1[1]) / (eye2[0] - eye1[0])
-    degree = math.degrees(math.atan(eye_tan))
+    degree = math.degrees(math.atan(eye_tan)) # Use tan to find the degrees
     img = rotate(img, degree, (int(eye2[0]), int(eye2[1]))) 
-    eye1 = (int(eye2[0] - eye_hip), eye2[1])    # Set new eye1 position
+    eye1 = (int(eye2[0] - eye_hip), eye2[1]) # Set new eye1 position. For this, subtract the eye2 position by the distance of the eyes
     
-    # Set default eyes by first image treated
+    # Set default eyes if it's the first image treated
     if(default_eye1 == (0,0)):
         default_eye1 = (eye1[0], eye1[1])
         default_eye2 = (eye2[0], eye2[1])
